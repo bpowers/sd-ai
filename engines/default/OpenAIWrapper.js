@@ -363,15 +363,19 @@ You will conduct a multistep process:
         //give it the user prompt
         messages.push({ role: "user", content: userPrompt });
         messages.push({ role: "user", content: this.#data.feedbackPrompt }); //then have it try to close feedback
-        
-        //get what it thinks the relationships are with this information
-        const originalCompletion = await this.#openAIAPI.chat.completions.create({
+
+        const request = {
             messages: messages,
-            model: underlyingModel,
+                model: underlyingModel,
             response_format: responseFormat,
             temperature: temperature,
             reasoning_effort: reasoningEffort
-        });
+        };
+        console.log(request);
+        console.log(JSON.stringify(request.response_format.json_schema.schema, null, 4));
+
+        //get what it thinks the relationships are with this information
+        const originalCompletion = await this.#openAIAPI.chat.completions.create(request);
 
         const originalResponse = originalCompletion.choices[0].message;
         if (originalResponse.refusal) {
