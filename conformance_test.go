@@ -77,7 +77,7 @@ Other Factors:
 
 var genericConstraints = []conformanceConstraints{
 	//{
-	//	additionalPrompt: "Your response must include at least 10 variables.",
+	//	additionalPrompt: "Your response MUST include at least 10 variables.",
 	//	description:      "include a minimum number of variables",
 	//	response: responseExpectations{
 	//		minVariables: 10,

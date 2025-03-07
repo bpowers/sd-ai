@@ -10,18 +10,12 @@ const cases = {
         problemStatement: "I am trying to understand how the american revolution started.  I'd like to know what caused hostilities to break out.",
         backgroundKnowledge:
 `The American Revolution was caused by a number of factors, including:
-Taxation
-The British imposed new taxes on the colonies to raise money, such as the Stamp Act of 1765, which taxed legal documents, newspapers, and playing cards. The colonists were angry because they had no representatives in Parliament. 
-The Boston Massacre
-In 1770, British soldiers fired on a crowd of colonists in Boston, killing five people. The massacre intensified anti-British sentiment and became a propaganda tool for the colonists. 
-The Boston Tea Party
-The Boston Tea Party was a major act of defiance against British rule. It showed that Americans would not tolerate tyranny and taxation. 
-The Intolerable Acts
-The British government passed harsh laws that the colonists called the Intolerable Acts. One of the acts closed the port of Boston until the colonists paid for the tea they had ruined. 
-The French and Indian War
-The British wanted the colonies to repay them for their defense during the French and Indian War (1754–63). 
-Colonial identity
-The colonists developed a stronger sense of American identity`
+* Taxation: The British imposed new taxes on the colonies to raise money, such as the Stamp Act of 1765, which taxed legal documents, newspapers, and playing cards. The colonists were angry because they had no representatives in Parliament.
+* The Boston Massacre: In 1770, British soldiers fired on a crowd of colonists in Boston, killing five people. The massacre intensified anti-British sentiment and became a propaganda tool for the colonists.
+* The Boston Tea Party: The Boston Tea Party was a major act of defiance against British rule. It showed that Americans would not tolerate tyranny and taxation.
+* The Intolerable Acts: The British government passed harsh laws that the colonists called the Intolerable Acts. One of the acts closed the port of Boston until the colonists paid for the tea they had ruined.
+* The French and Indian War: The British wanted the colonies to repay them for their defense during the French and Indian War (1754–63).
+* Colonial identity: The colonists developed a stronger sense of American identity`
     }, 
     "Road Rage": {
         prompt: "Using your knowledge of how road rage happens and the additional information I have given you, please give me a feedback based explanation for how road rage incidents might change in the future.",
@@ -29,28 +23,23 @@ The colonists developed a stronger sense of American identity`
         backgroundKnowledge: 
 `Road rage, defined as aggressive driving behavior caused by anger and frustration, can be triggered by various factors: 
 Psychological Factors: 
-Stress and Anxiety:
-High stress levels can make drivers more irritable and prone to aggressive reactions. 
-Personality Traits:
-Individuals with impulsive, hostile, or competitive personalities may be more likely to engage in road rage. 
-Frustration:
-Feeling frustrated or blocked by other drivers can lead to anger and aggression. 
+* Stress and Anxiety: High stress levels can make drivers more irritable and prone to aggressive reactions.
+* Personality Traits: Individuals with impulsive, hostile, or competitive personalities may be more likely to engage in road rage.
+* Frustration: Feeling frustrated or blocked by other drivers can lead to anger and aggression.
+
 Situational Factors: 
-Traffic Congestion:
-Heavy traffic, delays, and stop-and-go conditions can increase stress and impatience. 
-Perceived Provocations:
-Being cut off, tailgated, or honked at can provoke anger and retaliatory behavior. 
-Impatience:
-Drivers who are running late or have a low tolerance for delays may become aggressive. 
+* Traffic Congestion: Heavy traffic, delays, and stop-and-go conditions can increase stress and impatience.
+* Perceived Provocations: Being cut off, tailgated, or honked at can provoke anger and retaliatory behavior.
+* Impatience: Drivers who are running late or have a low tolerance for delays may become aggressive.
+
 Environmental Factors: 
-Road Design:
-Poor road design, such as narrow lanes or confusing intersections, can contribute to traffic congestion and frustration. 
-Weather Conditions:
-Adverse weather conditions, such as heavy rain or snow, can increase stress and make driving more challenging. 
+* Road Design: Poor road design, such as narrow lanes or confusing intersections, can contribute to traffic congestion and frustration.
+* Weather Conditions: Adverse weather conditions, such as heavy rain or snow, can increase stress and make driving more challenging.
+
 Other Factors: 
-Learned Behavior: Observing aggressive driving behavior from others can normalize it and increase the likelihood of engaging in road rage. 
-Lack of Sleep: Fatigue can impair judgment and make drivers more susceptible to anger. 
-Distracted Driving: Using a phone, texting, or eating while driving can increase the risk of accidents and provoke anger.`
+* Learned Behavior: Observing aggressive driving behavior from others can normalize it and increase the likelihood of engaging in road rage.
+* Lack of Sleep: Fatigue can impair judgment and make drivers more susceptible to anger.
+* Distracted Driving: Using a phone, texting, or eating while driving can increase the risk of accidents and provoke anger.`
     }
 };
 
@@ -135,52 +124,52 @@ const compareRelationshipLists = function(fromAI, requirements) {
 //elements by which we measure conformance.  these are specific instructions to append to the prompt
 const genericConformanceElements = [
     {
-        text: 'Your response must include at least 10 variables.',
+        text: 'Your response MUST include at least 10 variables.',
         description: "include a minimum number of variables",
         response: {
             minVariables: 10
         }
     }, {
-        text: 'Your response must include no more than 5 variables.',
+        text: 'Your response MUST include at most 5 variables.',
         description: "include a maximum number of variables",
         response: {
             maxVariables: 5
         }
     }, {
-        text: 'Your response must include at least 8 feedback loops.',
+        text: 'Your response MUST include at least 8 feedback loops.',
         description: "include a minimum number of feedback loops",
         response: {
             minFeedback: 8
         }
     }, {
-        text: 'Your response must include no more than 4 feedback loops.',
+        text: 'Your response MUST include at most 4 feedback loops.',
         description: "include a maximum number of feedback loops",
         response: {
             maxFeedback: 4
         }
     }, {
-        text: 'Your response must include no more than 4 feedback loops and no more than 5 variables.',
+        text: 'Your response MUST include at most 4 feedback loops and at most 5 variables.',
         description: "include a maximum number of feedback loops and a maximum number of variables",
         response: {
             maxFeedback: 4,
             maxVariables: 5
         }
     }, {
-        text: 'Your response must include at least 6 feedback loops and at least 8 variables.',
+        text: 'Your response MUST include at least 6 feedback loops and at least 8 variables.',
         description: "include a minimum number of feedback loops and a minimum number of variables",
         response: {
             minFeedback: 6,
             minVariables: 8
         }
     }, {
-        text: 'Your response must include no more than 4 feedback loops and at least 5 variables.',
+        text: 'Your response MUST include at most 4 feedback loops and at least 5 variables.',
         description: "include a maximum number of feedback loops and a minimum number of variables",
         response: {
             maxFeedback: 4,
             minVariables: 5
         }
     }, {
-        text: 'Your response must include at least 6 feedback loops and no more than 15 variables.',
+        text: 'Your response MUST include at least 6 feedback loops and at most 15 variables.',
         description: "include a min number of feedback loops and a maximum number of variables",
         response: {
             minFeedback: 6,
@@ -192,7 +181,7 @@ const genericConformanceElements = [
 const specificConformanceElements = {
     "Road Rage" : [
         {
-            text: 'Your response must include the variables "Traffic Congestion", "Driver Stress" and "Accidents".',
+            text: 'Your response MUST include the variables "Traffic Congestion", "Driver Stress" and "Accidents".',
             description: "include requested variables",
             response: { 
                 variables: [
@@ -206,7 +195,7 @@ const specificConformanceElements = {
 
     "American Revolution": [
         {
-            text: 'Your response must include the variables "Taxation", "Anti-British Sentiment" and "Colonial Identity".',
+            text: 'Your response MUST include the variables "Taxation", "Anti-British Sentiment" and "Colonial Identity".',
             description: "include requested variables",
             response: { 
                 variables: [
@@ -239,7 +228,7 @@ for (const specificCase in cases) {
     }));
 }
 
-console.log(conformanceTests);
+// console.log(conformanceTests);
 
 let llmsToTest = [
     'llama3.3:70b-instruct-q5_K_M',

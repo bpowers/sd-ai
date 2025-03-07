@@ -371,8 +371,8 @@ You will conduct a multistep process:
             temperature: temperature,
             reasoning_effort: reasoningEffort
         };
-        console.log(request);
-        console.log(JSON.stringify(request.response_format.json_schema.schema, null, 4));
+        // console.log(request);
+        // console.log(JSON.stringify(request.response_format.json_schema.schema, null, 4));
 
         //get what it thinks the relationships are with this information
         const originalCompletion = await this.#openAIAPI.chat.completions.create(request);
