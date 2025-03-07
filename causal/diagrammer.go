@@ -87,7 +87,6 @@ func (d diagrammer) Generate(prompt string) (*Map, error) {
 		return nil, fmt.Errorf("openai.NewClient: %w", err)
 	}
 
-	fmt.Printf("calling the LLM\n")
 	response, err := c.ChatCompletion(msgs, openai.WithResponseFormat("relationships_response", true, RelationshipsResponseSchema))
 	if err != nil {
 		return nil, fmt.Errorf("c.ChatCompletion: %w", err)
