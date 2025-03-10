@@ -36,6 +36,7 @@ type requestOpts struct {
 	temperature     *float64
 	reasoningEffort string
 	responseFormat  *jsonSchema
+	maxTokens       int
 }
 
 type Option func(*requestOpts)
@@ -49,6 +50,12 @@ func WithTemperature(t float64) Option {
 func WithReasoningEffort(lowMedHigh string) Option {
 	return func(opts *requestOpts) {
 		opts.reasoningEffort = lowMedHigh
+	}
+}
+
+func WithMaxTokens(tokens int) Option {
+	return func(opts *requestOpts) {
+		opts.maxTokens = tokens
 	}
 }
 
@@ -85,6 +92,7 @@ type chatCompletionRequest struct {
 	ResponseFormat  *responseFormat `json:"response_format,omitempty"`
 	Temperature     *float64        `json:"temperature,omitempty"`
 	ReasoningEffort string          `json:"reasoning_effort,omitempty"`
+	MaxTokens       int             `json:"max_tokens,omitempty"`
 }
 
 func (c client) ChatCompletion(msgs []ChatMessage, opts ...Option) (io.ReadCloser, error) {

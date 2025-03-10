@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"maps"
 	"slices"
@@ -164,7 +165,8 @@ var specificConstraints = map[string]conformanceConstraints{
 }
 
 var llmModels = []string{
-	"qwq",
+	"gemma2",
+	// "qwq",
 	// "llama3.3:70b-instruct-q5_K_M",
 }
 
@@ -202,12 +204,16 @@ func TestConformance(t *testing.T) {
 					causal.WithProblemStatement(testCase.problemStatement),
 				)
 
-				// TODO: try changing to "\n\n"
 				prompt := testCase.prompt + "\n\n" + testCase.conformance.additionalPrompt
 
 				result, err := d.Generate(prompt)
 				require.NoError(t, err)
 				require.NotNil(t, result)
+
+				resultJson, err := json.MarshalIndent(result, "", "  ")
+				require.NoError(t, err)
+
+				fmt.Printf("result: %s\n", string(resultJson))
 
 				vars := result.Variables()
 				loops := result.Loops()
