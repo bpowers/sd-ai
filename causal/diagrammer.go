@@ -31,22 +31,22 @@ The following definitions are important to the modeling process and producing co
 
 You approach to responding to the user is a multi-step process:
 1. Identify the key variables that represent major components of the system.  Variables should be named in a concise, neutral manner with fewer than 5 words.  For example, our example animal population model has three variables: "Population", "Births", and "Deaths".  
-2. Next, you will identify the causal relationships between pairs of variables ("from" and "to"), including the polarity of that relationship.
+2. Next, you will identify the causal relationships between pairs of variables ("from" and "to"), including the polarity of that relationship.  Only include each causal relationship once in your response.
 3. When three variables are related in a sentence provided by the user, make sure the relationship between second and third variable is correct. For example, if "Variable1" inhibits (negative polarity) "Variable2", and this leads to less "Variable3", "Variable2" and "Variable3" have a positive polarity relationship.
 4. If there are no causal relationships in the system described by the provided text, return an empty list of causal relationships.  Do not create relationships that do not exist in reality.
-5. If a user asks for a maximum or minimum number of variables or feedback loops, you MUST provide a response that respects those constraints.
-6. It is CRITICAL that your response includes feedback loops.  For example, in our simple 3-variable population model there are two feedback loops: "Births" influences "Population" which influences "Births", and "Deaths" influences "Population" which influences "Deaths".  Identify if there are any possibilities of forming closed feedback loops that are implied in the analysis that you are doing. If it is possible to create a feedback loop using the variables you've found in your analysis, then close any feedback loops you can by adding the extra relationships which are necessary to do so.  This may require you to add many relationships.  This is okay as long as there is evidence to support each relationship you add.
+5. If a user asks for a maximum or minimum number of variables or feedback loops, you MUST provide a response that respects those constraints.  When working within constraints like this, focus on variables and causal relationships that are key to the main feedback loops of the system.
+6. It is CRITICAL that your response includes feedback loops.  For example, in our simple 3-variable population model there are two feedback loops. First, "Births" influences "Population" which influences "Births".  Second, "Deaths" influences "Population" which influences "Deaths".  Identify if there are any possibilities to form closed feedback loops that are implied in the analysis that you are doing. If it is possible to create a feedback loop using the variables you've found in your analysis, then close any feedback loops you can by adding the extra relationships which are necessary to do so.  This may require you to add many relationships.  This is okay as long as there is evidence to support each relationship you add.
 
 Your answer will be structured as JSON conforming to the schema:
 
 {schema}
 `
 
-	defaultBackgroundPrompt = `Please incorporate the following background information into your answer.
+	backgroundPrompt = `The following background information is important context for formulating a response:
 
 {backgroundKnowledge}`
 
-	defaultProblemStatementPrompt = `{problemStatement}`
+	problemStatementPrompt = `{problemStatement}`
 )
 
 func (d diagrammer) Generate(prompt string) (*Map, error) {
@@ -67,14 +67,14 @@ func (d diagrammer) Generate(prompt string) (*Map, error) {
 	if d.backgroundKnowledge != "" {
 		msgs = append(msgs, openai.ChatMessage{
 			Role:    "user",
-			Content: strings.Replace(defaultBackgroundPrompt, "{backgroundKnowledge}", d.backgroundKnowledge, 1),
+			Content: strings.ReplaceAll(backgroundPrompt, "{backgroundKnowledge}", d.backgroundKnowledge),
 		})
 	}
 
 	if d.problemStatement != "" {
 		msgs = append(msgs, openai.ChatMessage{
 			Role:    "user",
-			Content: strings.Replace(defaultProblemStatementPrompt, "{problemStatement}", d.problemStatement, 1),
+			Content: strings.ReplaceAll(problemStatementPrompt, "{problemStatement}", d.problemStatement),
 		})
 	}
 

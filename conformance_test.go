@@ -197,11 +197,11 @@ func TestConformance(t *testing.T) {
 				return
 			}
 
-			name := fmt.Sprintf("%s (%s): %s", llm, testCase.name, testCase.conformance.additionalPrompt)
+			name := fmt.Sprintf("%s_(%s):_%s", llm, testCase.name, testCase.conformance.additionalPrompt)
 			t.Run(name, func(t *testing.T) {
 				d := causal.NewDiagrammer(
 					causal.WithModel(llm),
-					causal.WithBackgroundKnowledge(testCase.problemStatement),
+					causal.WithBackgroundKnowledge(testCase.backgroundKnowledge),
 					causal.WithProblemStatement(testCase.problemStatement),
 				)
 
