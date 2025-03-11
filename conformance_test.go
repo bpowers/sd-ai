@@ -77,13 +77,6 @@ Other Factors:
 }
 
 var genericConstraints = []conformanceConstraints{
-	//{
-	//	additionalPrompt: "Your response MUST include at least 10 variables.",
-	//	description:      "include a minimum number of variables",
-	//	response: responseExpectations{
-	//		minVariables: 10,
-	//	},
-	//},
 	{
 		additionalPrompt: "Your response MUST include at most 5 variables.",
 		description:      "include a maximum number of variables",
@@ -137,6 +130,13 @@ var genericConstraints = []conformanceConstraints{
 			maxVariables: 15,
 		},
 	},
+	{
+		additionalPrompt: "Your response MUST include at least 10 variables.",
+		description:      "include a minimum number of variables",
+		response: responseExpectations{
+			minVariables: 10,
+		},
+	},
 }
 
 var specificConstraints = map[string]conformanceConstraints{
@@ -166,8 +166,9 @@ var specificConstraints = map[string]conformanceConstraints{
 
 var llmModels = []string{
 	"gemma2",
+	// "phi4",
 	// "qwq",
-	// "llama3.3:70b-instruct-q5_K_M",
+	// "llama3.3:70b-instruct-q4_K_M",
 }
 
 func TestConformance(t *testing.T) {
