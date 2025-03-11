@@ -166,9 +166,9 @@ var specificConstraints = map[string]conformanceConstraints{
 
 var llmModels = []string{
 	"gemma2",
-	// "phi4",
-	// "qwq",
-	// "llama3.3:70b-instruct-q4_K_M",
+	"phi4",
+	"qwq",
+	"llama3.3:70b-instruct-q4_K_M",
 }
 
 func TestConformance(t *testing.T) {
@@ -193,9 +193,9 @@ func TestConformance(t *testing.T) {
 	for _, llm := range llmModels {
 		for _, testCase := range allTests {
 			n++
-			if n > 10 {
-				return
-			}
+			//if n > 10 {
+			//	return
+			//}
 
 			name := fmt.Sprintf("%s_(%s):_%s", llm, testCase.name, testCase.conformance.additionalPrompt)
 			t.Run(name, func(t *testing.T) {
