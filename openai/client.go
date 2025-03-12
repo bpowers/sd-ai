@@ -1,10 +1,13 @@
 package openai
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"os"
+	"path"
 	"strings"
 
 	"github.com/isee-systems/sd-ai/chat"
@@ -43,7 +46,7 @@ type chatCompletionRequest struct {
 	MaxTokens       int             `json:"max_tokens,omitempty"`
 }
 
-func (c client) ChatCompletion(msgs []chat.Message, opts ...chat.Option) (io.ReadCloser, error) {
+func (c client) ChatCompletion(ctx context.Context, msgs []chat.Message, opts ...chat.Option) (io.Reader, error) {
 	reqOpts := chat.ApplyOptions(opts...)
 
 	// for OpenAI models, the system prompt is the first message in the list of messages
@@ -71,11 +74,18 @@ func (c client) ChatCompletion(msgs []chat.Message, opts ...chat.Option) (io.Rea
 		}
 	}
 
-	bodyBytes, err := json.Marshal(req)
+	bodyBytes, err := json.MarshalIndent(req, "", "  ")
 	if err != nil {
 		return nil, fmt.Errorf("json.Marshal: %w", err)
 	}
 	body := strings.NewReader(string(bodyBytes))
+
+	if debugDir := chat.DebugDir(ctx); debugDir != "" {
+		outputPath := path.Join(debugDir, "request.json")
+		if err = os.WriteFile(outputPath, bodyBytes, 0o644); err != nil {
+			return nil, fmt.Errorf("os.WriteFile(%s): %w", outputPath, err)
+		}
+	}
 
 	httpReq, err := http.NewRequest(http.MethodPost, c.apiBaseUrl+"/chat/completions", body)
 	if err != nil {
@@ -95,7 +105,21 @@ func (c client) ChatCompletion(msgs []chat.Message, opts ...chat.Option) (io.Rea
 		return nil, fmt.Errorf("http status code: %d (%s)", resp.StatusCode, string(body))
 	}
 
-	return resp.Body, nil
+	defer func() { _ = resp.Body.Close() }()
+
+	bodyBytes, err = io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("io.ReadAll(resp.Body): %w", err)
+	}
+
+	if debugDir := chat.DebugDir(ctx); debugDir != "" {
+		outputPath := path.Join(debugDir, "response.json")
+		if err = os.WriteFile(outputPath, bodyBytes, 0o644); err != nil {
+			return nil, fmt.Errorf("os.WriteFile(%s): %w", outputPath, err)
+		}
+	}
+
+	return strings.NewReader(string(bodyBytes)), nil
 }
 
 type ChatCompletionChoice struct {

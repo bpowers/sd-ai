@@ -101,7 +101,7 @@ var RelationshipsResponseSchema = &schema.JSON{
 		"relationships",
 	},
 	AdditionalProperties: false,
-	Schema:               "http://json-schema.org/draft-07/schema#",
+	Schema:               schema.URL,
 }
 
 type Relationship struct {

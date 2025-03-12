@@ -1,11 +1,18 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"maps"
+	"os"
+	"path"
 	"slices"
 	"testing"
+
+	"github.com/isee-systems/sd-ai/chat"
+
+	"github.com/isee-systems/sd-ai/openai"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -34,15 +41,13 @@ type conformanceConstraints struct {
 type testCase struct {
 	name                string
 	prompt              string
-	problemStatement    string
 	backgroundKnowledge string
 	conformance         conformanceConstraints
 }
 
 var baseTestCases = map[string]testCase{
 	americanRevolution: {
-		prompt:           "Using your knowledge of how the American Revolution started and the additional information I have given you, please give me a feedback based explanation for how the American Revolution came about.",
-		problemStatement: "I am trying to understand how the American Revolution started.  I'd like to know what caused hostilities to break out.",
+		prompt: "Using your knowledge of how the American Revolution started and the additional information I have given you, please give me a feedback based explanation for how the American Revolution came about.",
 		backgroundKnowledge: `The American Revolution was caused by a number of factors, including:
 * Taxation: The British imposed new taxes on the colonies to raise money, such as the Stamp Act of 1765, which taxed legal documents, newspapers, and playing cards. The colonists were angry because they had no representatives in Parliament.
 * The Boston Massacre: In 1770, British soldiers fired on a crowd of colonists in Boston, killing five people. The massacre intensified anti-British sentiment and became a propaganda tool for the colonists.
@@ -52,8 +57,7 @@ var baseTestCases = map[string]testCase{
 * Colonial identity: The colonists developed a stronger sense of American identity`,
 	},
 	roadRage: {
-		prompt:           "Using your knowledge of how road rage happens and the additional information I have given you, please give me a feedback based explanation for how road rage incidents might change in the future.",
-		problemStatement: "I am trying to understand how road rage happens.  I'd like to know what causes road rage in society.",
+		prompt: "Using your knowledge of how road rage happens and the additional information I have given you, please give me a feedback based explanation for how road rage incidents might change in the future.",
 		backgroundKnowledge: `Road rage, defined as aggressive driving behavior caused by anger and frustration, can be triggered by various factors: 
 Psychological Factors: 
 * Stress and Anxiety: High stress levels can make drivers more irritable and prone to aggressive reactions.
@@ -189,32 +193,34 @@ func TestConformance(t *testing.T) {
 		}
 	}
 
-	n := 0
 	for _, llm := range llmModels {
 		for _, testCase := range allTests {
-			n++
-			//if n > 10 {
-			//	return
-			//}
-
 			name := fmt.Sprintf("%s_(%s):_%s", llm, testCase.name, testCase.conformance.additionalPrompt)
 			t.Run(name, func(t *testing.T) {
-				d := causal.NewDiagrammer(
-					causal.WithModel(llm),
-					causal.WithBackgroundKnowledge(testCase.backgroundKnowledge),
-					causal.WithProblemStatement(testCase.problemStatement),
-				)
+				c, err := openai.NewClient(openai.OllamaURL, llm)
+				require.NoError(t, err)
+
+				d := causal.NewDiagrammer(causal.WithClient(c))
 
 				prompt := testCase.prompt + "\n\n" + testCase.conformance.additionalPrompt
 
-				result, err := d.Generate(prompt)
+				debugDir := path.Join(".", "testdata", name)
+				err = os.RemoveAll(debugDir)
+				require.NoError(t, err)
+				err = os.MkdirAll(debugDir, 0o755)
+				require.NoError(t, err)
+
+				ctx := chat.WithDebugDir(context.Background(), debugDir)
+
+				result, err := d.Generate(ctx, prompt, testCase.backgroundKnowledge)
 				require.NoError(t, err)
 				require.NotNil(t, result)
 
 				resultJson, err := json.MarshalIndent(result, "", "  ")
 				require.NoError(t, err)
 
-				fmt.Printf("result: %s\n", string(resultJson))
+				err = os.WriteFile(path.Join(debugDir, "result.json"), resultJson, 0o644)
+				require.NoError(t, err)
 
 				vars := result.Variables()
 				loops := result.Loops()

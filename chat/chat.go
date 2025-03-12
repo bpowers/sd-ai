@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"context"
 	"io"
 
 	"github.com/isee-systems/sd-ai/schema"
@@ -85,10 +86,20 @@ const (
 )
 
 type Client interface {
-	ChatCompletion(msgs []Message, opts ...Option) (io.ReadCloser, error)
+	ChatCompletion(ctx context.Context, msgs []Message, opts ...Option) (io.Reader, error)
 }
 
 type Message struct {
 	Role    string `json:"role,omitempty"`
 	Content string `json:"content,omitempty"`
+}
+
+type debugDirContextKey struct{}
+
+func WithDebugDir(ctx context.Context, dir string) context.Context {
+	return context.WithValue(ctx, debugDirContextKey{}, dir)
+}
+
+func DebugDir(ctx context.Context) string {
+	return ctx.Value(debugDirContextKey{}).(string)
 }

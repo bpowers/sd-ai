@@ -1,6 +1,7 @@
 package causal
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -11,13 +12,11 @@ import (
 )
 
 type Diagrammer interface {
-	Generate(prompt string) (*Map, error)
+	Generate(ctx context.Context, prompt, backgroundKnowledge string) (*Map, error)
 }
 
 type diagrammer struct {
-	modelName           string
-	problemStatement    string
-	backgroundKnowledge string
+	client chat.Client
 }
 
 const (
@@ -43,14 +42,12 @@ Your answer will be structured as JSON conforming to the schema:
 {schema}
 `
 
-	backgroundPrompt = `The following background information is important context for formulating a response:
+	backgroundPrompt = `The following background information is important context about the structure of the system, for use in your response:
 
 {backgroundKnowledge}`
-
-	problemStatementPrompt = `{problemStatement}`
 )
 
-func (d diagrammer) Generate(prompt string) (*Map, error) {
+func (d diagrammer) Generate(ctx context.Context, prompt, backgroundKnowledge string) (*Map, error) {
 	schema, err := json.MarshalIndent(RelationshipsResponseSchema, "", "    ")
 	if err != nil {
 		return nil, fmt.Errorf("json.MarshalIndent: %w", err)
@@ -58,17 +55,10 @@ func (d diagrammer) Generate(prompt string) (*Map, error) {
 
 	var msgs []chat.Message
 
-	if d.backgroundKnowledge != "" {
+	if backgroundKnowledge != "" {
 		msgs = append(msgs, chat.Message{
 			Role:    chat.UserRole,
-			Content: strings.ReplaceAll(backgroundPrompt, "{backgroundKnowledge}", d.backgroundKnowledge),
-		})
-	}
-
-	if d.problemStatement != "" {
-		msgs = append(msgs, chat.Message{
-			Role:    chat.UserRole,
-			Content: strings.ReplaceAll(problemStatementPrompt, "{problemStatement}", d.problemStatement),
+			Content: strings.ReplaceAll(backgroundPrompt, "{backgroundKnowledge}", backgroundKnowledge),
 		})
 	}
 
@@ -77,12 +67,7 @@ func (d diagrammer) Generate(prompt string) (*Map, error) {
 		Content: prompt,
 	})
 
-	c, err := openai.NewClient(openai.OllamaURL, d.modelName)
-	if err != nil {
-		return nil, fmt.Errorf("openai.NewClient: %w", err)
-	}
-
-	response, err := c.ChatCompletion(msgs,
+	response, err := d.client.ChatCompletion(ctx, msgs,
 		chat.WithResponseFormat("relationships_response", true, RelationshipsResponseSchema),
 		chat.WithMaxTokens(64*1024),
 		chat.WithSystemPrompt(strings.ReplaceAll(systemPrompt, "{schema}", string(schema))),
@@ -90,7 +75,6 @@ func (d diagrammer) Generate(prompt string) (*Map, error) {
 	if err != nil {
 		return nil, fmt.Errorf("c.ChatCompletion: %w", err)
 	}
-	defer func() { _ = response.Close() }()
 
 	responseBody, err := io.ReadAll(response)
 	if err != nil {
@@ -113,28 +97,14 @@ func (d diagrammer) Generate(prompt string) (*Map, error) {
 var _ Diagrammer = &diagrammer{}
 
 type opts struct {
-	modelName           string
-	problemStatement    string
-	backgroundKnowledge string
+	client chat.Client
 }
 
 type Option func(*opts)
 
-func WithModel(name string) Option {
+func WithClient(client chat.Client) Option {
 	return func(opts *opts) {
-		opts.modelName = name
-	}
-}
-
-func WithProblemStatement(statement string) Option {
-	return func(opts *opts) {
-		opts.problemStatement = statement
-	}
-}
-
-func WithBackgroundKnowledge(knowledge string) Option {
-	return func(opts *opts) {
-		opts.backgroundKnowledge = knowledge
+		opts.client = client
 	}
 }
 
@@ -145,8 +115,6 @@ func NewDiagrammer(options ...Option) Diagrammer {
 	}
 
 	return diagrammer{
-		modelName:           opts.modelName,
-		problemStatement:    opts.problemStatement,
-		backgroundKnowledge: opts.backgroundKnowledge,
+		client: opts.client,
 	}
 }
