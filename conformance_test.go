@@ -200,7 +200,7 @@ func TestConformance(t *testing.T) {
 				c, err := openai.NewClient(openai.OllamaURL, llm)
 				require.NoError(t, err)
 
-				d := causal.NewDiagrammer(causal.WithClient(c))
+				d := causal.NewDiagrammer(c)
 
 				prompt := testCase.prompt + "\n\n" + testCase.conformance.additionalPrompt
 

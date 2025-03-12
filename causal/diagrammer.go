@@ -96,25 +96,8 @@ func (d diagrammer) Generate(ctx context.Context, prompt, backgroundKnowledge st
 
 var _ Diagrammer = &diagrammer{}
 
-type opts struct {
-	client chat.Client
-}
-
-type Option func(*opts)
-
-func WithClient(client chat.Client) Option {
-	return func(opts *opts) {
-		opts.client = client
-	}
-}
-
-func NewDiagrammer(options ...Option) Diagrammer {
-	opts := &opts{}
-	for _, option := range options {
-		option(opts)
-	}
-
+func NewDiagrammer(client chat.Client) Diagrammer {
 	return diagrammer{
-		client: opts.client,
+		client: client,
 	}
 }
