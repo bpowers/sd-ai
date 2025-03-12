@@ -6,6 +6,7 @@ import (
 	"io"
 	"strings"
 
+	"github.com/isee-systems/sd-ai/chat"
 	"github.com/isee-systems/sd-ai/openai"
 )
 
@@ -55,35 +56,26 @@ func (d diagrammer) Generate(prompt string) (*Map, error) {
 		return nil, fmt.Errorf("json.MarshalIndent: %w", err)
 	}
 
-	systemRole := "system"
-
-	msgs := []openai.ChatMessage{
-		{
-			Role:    systemRole,
-			Content: strings.ReplaceAll(systemPrompt, "{schema}", string(schema)),
-		},
-	}
+	var msgs []chat.Message
 
 	if d.backgroundKnowledge != "" {
-		msgs = append(msgs, openai.ChatMessage{
-			Role:    "user",
+		msgs = append(msgs, chat.Message{
+			Role:    chat.UserRole,
 			Content: strings.ReplaceAll(backgroundPrompt, "{backgroundKnowledge}", d.backgroundKnowledge),
 		})
 	}
 
 	if d.problemStatement != "" {
-		msgs = append(msgs, openai.ChatMessage{
-			Role:    "user",
+		msgs = append(msgs, chat.Message{
+			Role:    chat.UserRole,
 			Content: strings.ReplaceAll(problemStatementPrompt, "{problemStatement}", d.problemStatement),
 		})
 	}
 
-	msgs = append(msgs,
-		openai.ChatMessage{
-			Role:    "user",
-			Content: prompt,
-		},
-	)
+	msgs = append(msgs, chat.Message{
+		Role:    chat.UserRole,
+		Content: prompt,
+	})
 
 	c, err := openai.NewClient(openai.OllamaURL, d.modelName)
 	if err != nil {
@@ -91,8 +83,9 @@ func (d diagrammer) Generate(prompt string) (*Map, error) {
 	}
 
 	response, err := c.ChatCompletion(msgs,
-		openai.WithResponseFormat("relationships_response", true, RelationshipsResponseSchema),
-		openai.WithMaxTokens(64*1024),
+		chat.WithResponseFormat("relationships_response", true, RelationshipsResponseSchema),
+		chat.WithMaxTokens(64*1024),
+		chat.WithSystemPrompt(strings.ReplaceAll(systemPrompt, "{schema}", string(schema))),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("c.ChatCompletion: %w", err)

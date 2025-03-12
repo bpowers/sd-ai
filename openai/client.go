@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/isee-systems/sd-ai/schema"
+	"github.com/isee-systems/sd-ai/chat"
 )
 
 const (
@@ -15,79 +15,27 @@ const (
 	OllamaURL = "http://localhost:11434/v1"
 )
 
-type Client interface {
-	ChatCompletion(msgs []ChatMessage, opts ...Option) (io.ReadCloser, error)
-}
-
 type client struct {
 	apiBaseUrl string
 	modelName  string
 }
 
-var _ Client = &client{}
+var _ chat.Client = &client{}
 
-type jsonSchema struct {
-	Name   string       `json:"name"`
-	Strict bool         `json:"strict,omitempty"`
-	Schema *schema.JSON `json:"schema,omitempty"`
-}
-
-type requestOpts struct {
-	temperature     *float64
-	reasoningEffort string
-	responseFormat  *jsonSchema
-	maxTokens       int
-}
-
-type Option func(*requestOpts)
-
-func WithTemperature(t float64) Option {
-	return func(opts *requestOpts) {
-		opts.temperature = &t
-	}
-}
-
-func WithReasoningEffort(lowMedHigh string) Option {
-	return func(opts *requestOpts) {
-		opts.reasoningEffort = lowMedHigh
-	}
-}
-
-func WithMaxTokens(tokens int) Option {
-	return func(opts *requestOpts) {
-		opts.maxTokens = tokens
-	}
-}
-
-func WithResponseFormat(name string, strict bool, schema *schema.JSON) Option {
-	return func(opts *requestOpts) {
-		opts.responseFormat = &jsonSchema{
-			Name:   name,
-			Strict: strict,
-			Schema: schema,
-		}
-	}
-}
-
-func NewClient(apiBase, modelName string) (Client, error) {
+func NewClient(apiBase, modelName string) (chat.Client, error) {
 	return &client{
 		apiBaseUrl: apiBase,
 		modelName:  modelName,
 	}, nil
 }
 
-type ChatMessage struct {
-	Role    string `json:"role,omitempty"`
-	Content string `json:"content,omitempty"`
-}
-
 type responseFormat struct {
-	Type       string      `json:"type"`
-	JsonSchema *jsonSchema `json:"json_schema,omitempty"`
+	Type       string           `json:"type"`
+	JsonSchema *chat.JsonSchema `json:"json_schema,omitempty"`
 }
 
 type chatCompletionRequest struct {
-	Messages        []ChatMessage   `json:"messages"`
+	Messages        []chat.Message  `json:"messages"`
 	Model           string          `json:"model,omitempty"`
 	ResponseFormat  *responseFormat `json:"response_format,omitempty"`
 	Temperature     *float64        `json:"temperature,omitempty"`
@@ -95,23 +43,31 @@ type chatCompletionRequest struct {
 	MaxTokens       int             `json:"max_tokens,omitempty"`
 }
 
-func (c client) ChatCompletion(msgs []ChatMessage, opts ...Option) (io.ReadCloser, error) {
-	reqOpts := &requestOpts{}
-	for _, opt := range opts {
-		opt(reqOpts)
+func (c client) ChatCompletion(msgs []chat.Message, opts ...chat.Option) (io.ReadCloser, error) {
+	reqOpts := chat.ApplyOptions(opts...)
+
+	// for OpenAI models, the system prompt is the first message in the list of messages
+	if reqOpts.SystemPrompt != "" {
+		allMsgs := make([]chat.Message, 0, len(msgs)+1)
+		allMsgs = append(allMsgs, chat.Message{
+			Role:    chat.SystemRole,
+			Content: reqOpts.SystemPrompt,
+		})
+		allMsgs = append(allMsgs, msgs...)
+		msgs = allMsgs
 	}
 
 	req := &chatCompletionRequest{
 		Messages:        msgs,
 		Model:           c.modelName,
-		Temperature:     reqOpts.temperature,
-		ReasoningEffort: reqOpts.reasoningEffort,
+		Temperature:     reqOpts.Temperature,
+		ReasoningEffort: reqOpts.ReasoningEffort,
 	}
 
-	if reqOpts.responseFormat != nil {
+	if reqOpts.ResponseFormat != nil {
 		req.ResponseFormat = &responseFormat{
 			Type:       "json_schema",
-			JsonSchema: reqOpts.responseFormat,
+			JsonSchema: reqOpts.ResponseFormat,
 		}
 	}
 

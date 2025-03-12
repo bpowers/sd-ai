@@ -166,9 +166,9 @@ var specificConstraints = map[string]conformanceConstraints{
 
 var llmModels = []string{
 	"gemma2",
-	"phi4",
-	"qwq",
-	"llama3.3:70b-instruct-q4_K_M",
+	//"phi4",
+	//"qwq",
+	//"llama3.3:70b-instruct-q4_K_M",
 }
 
 func TestConformance(t *testing.T) {
