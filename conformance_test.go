@@ -10,14 +10,12 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/isee-systems/sd-ai/chat"
-
-	"github.com/isee-systems/sd-ai/openai"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/isee-systems/sd-ai/causal"
+	"github.com/isee-systems/sd-ai/chat"
+	"github.com/isee-systems/sd-ai/openai"
 )
 
 const (
@@ -169,10 +167,10 @@ var specificConstraints = map[string]conformanceConstraints{
 }
 
 var llmModels = []string{
-	"gemma2",
+	//"gemma2",
 	//"phi4",
+	"llama3.3:70b-instruct-q4_K_M",
 	//"qwq",
-	//"llama3.3:70b-instruct-q4_K_M",
 }
 
 func TestConformance(t *testing.T) {
