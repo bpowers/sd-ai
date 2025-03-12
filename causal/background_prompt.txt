@@ -1,0 +1,3 @@
+The following background information is important context about the structure of the system, for use in your response:
+
+{backgroundKnowledge}

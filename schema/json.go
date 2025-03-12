@@ -18,6 +18,6 @@ type JSON struct {
 	Items                *JSON            `json:"items,omitempty"`
 	Enum                 []string         `json:"enum,omitempty"`
 	Required             []string         `json:"required,omitempty"`
-	AdditionalProperties bool             `json:"additionalProperties"`
+	AdditionalProperties *bool            `json:"additionalProperties,omitzero"`
 	Schema               string           `json:"$schema,omitempty"`
 }

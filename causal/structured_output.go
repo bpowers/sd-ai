@@ -2,6 +2,8 @@ package causal
 
 import (
 	"cmp"
+	_ "embed"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -11,6 +13,9 @@ import (
 
 	"github.com/isee-systems/sd-ai/schema"
 )
+
+//go:embed response_schema.json
+var responseSchemaJson string
 
 type Polarity int
 
@@ -69,81 +74,14 @@ func NewSet[T cmp.Ordered](elements ...T) Set[T] {
 	return s
 }
 
-var RelationshipsResponseSchema = &schema.JSON{
-	Type: schema.Object,
-	Properties: map[string]*schema.JSON{
-		"title": {
-			Type:        schema.String,
-			Description: "A highly descriptive title describing your explanation, with a maximum of 7 words.",
-		},
-		"explanation": {
-			Type:        schema.String,
-			Description: "Concisely explain your reasoning for each change you made to the old CLD to create the new CLD. Speak in plain English, don't reference JSON specifically. Don't reiterate the request or any of these instructions.",
-		},
-		"causal_chains": {
-			Type: schema.Array,
-			Items: &schema.JSON{
-				Type: schema.Object,
-				Properties: map[string]*schema.JSON{
-					"initial_variable": {
-						Type:        schema.String,
-						Description: "The first variable in this causal chain.",
-					},
-					"relationships": {
-						Type: schema.Array,
-						Items: &schema.JSON{
-							Type: schema.Object,
-							Properties: map[string]*schema.JSON{
-								"variable": {
-									Type:        schema.String,
-									Description: "A variable in this causal chain.  It is directly influenced by the previous variable in the parent array, and directly influences the next variable in the parent array (if one exists).",
-								},
-								"polarity": {
-									Type: schema.String,
-									Enum: []string{
-										"+",
-										"-",
-									},
-									Description: "Polarity is either + (positive) or - (negative).  In relationships with positive polarity (+), a change in the previous variable causes a change in the same direction in the current variable.  In relationships with negative polarity (-), an increase in the previous variable causes a decrease in the current variable, and a decrease in the previous variable would cause the current variable to increase.",
-								},
-								"polarity_reasoning": {
-									Type:        schema.String,
-									Description: "This is the reason for why the polarity for this relationship was choosen",
-								},
-							},
-							Required: []string{
-								"variable",
-								"polarity",
-								"polarity_reasoning",
-							},
-							AdditionalProperties: false,
-							Description:          "This named variable is influenced by the previous variable, with a given polarity.",
-						},
-						Description: "Each entry identifies a causal relationship between the previous variable and the current variable, or in the case of the first entry in the array a causal relationship between the variable named in the initial_variable field and the first variable.  If this causal chain represents a feedback loop, the final variable in the chain MUST be the same (have the same name) as the initial_variable.  Every entry in a causal chain MUST have a distinct variable name.",
-					},
-					"reasoning": {
-						Type:        schema.String,
-						Description: "This is an explanation for why this causal chain exists.  If it represents a feedback loop, use the words \"feedback loop\", and if it does not represent a feedback loop don't use that term.",
-					},
-				},
-				Required: []string{
-					"initial_variable",
-					"relationships",
-					"reasoning",
-				},
-				AdditionalProperties: false,
-				Description:          "This is a relationship between two variables, from and to (from is the cause, to is the effect).  The relationship also contains a polarity which describes how a change in the from variable impacts the to variable",
-			},
-			Description: "The list of relationships you think are appropriate to satisfy my request based on all of the information I have given you",
-		},
-	},
-	Required: []string{
-		"explanation",
-		"title",
-		"causal_chains",
-	},
-	AdditionalProperties: false,
-	Schema:               schema.URL,
+var RelationshipsResponseSchema *schema.JSON
+
+func init() {
+	RelationshipsResponseSchema = new(schema.JSON)
+	err := json.Unmarshal([]byte(responseSchemaJson), RelationshipsResponseSchema)
+	if err != nil {
+		panic(err)
+	}
 }
 
 type Relationship struct {
