@@ -261,6 +261,16 @@ func (m *Map) Loops() [][]string {
 		allLoops[i] = append(loop, loop[0])
 	}
 
+	slices.SortStableFunc(allLoops, func(a, b []string) int {
+		if len(a) < len(b) {
+			return -1
+		} else if len(a) > len(b) {
+			return 1
+		}
+
+		return slices.Compare(a, b)
+	})
+
 	return allLoops
 }
 
