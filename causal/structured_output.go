@@ -12,6 +12,34 @@ import (
 	"github.com/isee-systems/sd-ai/schema"
 )
 
+type Polarity int
+
+const (
+	NegativePolarity Polarity = iota
+	PositivePolarity
+)
+
+func (p Polarity) IsPositive() bool {
+	return p == PositivePolarity
+}
+
+func (p Polarity) IsNegative() bool {
+	return !p.IsPositive()
+}
+
+func (p Polarity) Symbol() string {
+	switch p {
+	case PositivePolarity:
+		return "+"
+	default:
+		return "-"
+	}
+}
+
+func (p Polarity) String() string {
+	return p.Symbol()
+}
+
 type Set[T cmp.Ordered] map[T]struct{}
 
 func (s Set[T]) Add(e T) {
@@ -270,4 +298,23 @@ func (m *Map) VisualSVG() ([]byte, error) {
 	}
 
 	return svg, nil
+}
+
+func NewMap(relationships []Relationship) *Map {
+	m := &Map{}
+
+	for _, r := range relationships {
+		m.CausalChains = append(m.CausalChains, Chain{
+			InitialVariable: r.From,
+			Relationships: []RelationshipEntry{
+				{
+					Variable:          r.To,
+					Polarity:          r.Polarity,
+					PolarityReasoning: r.PolarityReasoning,
+				},
+			},
+		})
+	}
+
+	return m
 }

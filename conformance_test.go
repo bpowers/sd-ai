@@ -202,7 +202,7 @@ func TestConformance(t *testing.T) {
 
 				prompt := testCase.prompt + "\n\n" + testCase.conformance.additionalPrompt
 
-				debugDir := path.Join(".", "testdata", name)
+				debugDir := path.Join(".", "testdata", "conformance", name)
 				err = os.RemoveAll(debugDir)
 				require.NoError(t, err)
 				err = os.MkdirAll(debugDir, 0o755)
