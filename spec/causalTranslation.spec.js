@@ -214,7 +214,8 @@ const multipleFeedbackLoopTests = [
 ];
 
 let llmsToTest = [
-    'llama3.3:70b-instruct-q5_K_M',
+    'gemma3:12b',
+    //'llama3.3:70b-instruct-q5_K_M',
     // 'gpt-4o',
     // 'gpt-4o-mini',
     // 'gpt-4.5-preview',
