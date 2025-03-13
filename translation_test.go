@@ -181,6 +181,38 @@ func TestMultipleFeedbackLoops(t *testing.T) {
 				{causal.PositivePolarity, 6},
 			},
 		},
+		{
+			loops: []loopDef{
+				{causal.PositivePolarity, 5},
+				{causal.PositivePolarity, 2},
+				{causal.NegativePolarity, 4},
+			},
+		},
+		{
+			loops: []loopDef{
+				{causal.NegativePolarity, 5},
+				{causal.NegativePolarity, 2},
+				{causal.PositivePolarity, 4},
+			},
+		},
+		{
+			loops: []loopDef{
+				{causal.NegativePolarity, 3},
+				{causal.PositivePolarity, 5},
+				{causal.PositivePolarity, 6},
+				{causal.PositivePolarity, 2},
+				{causal.NegativePolarity, 6},
+			},
+		},
+		{
+			loops: []loopDef{
+				{causal.NegativePolarity, 3},
+				{causal.PositivePolarity, 5},
+				{causal.PositivePolarity, 6},
+				{causal.NegativePolarity, 2},
+				{causal.NegativePolarity, 6},
+			},
+		},
 	}
 
 	for _, llm := range llmModels {

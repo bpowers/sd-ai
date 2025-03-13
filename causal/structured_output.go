@@ -113,9 +113,9 @@ type Map struct {
 func (m *Map) Variables() (vars Set[string]) {
 	vars = make(Set[string])
 	for _, c := range m.CausalChains {
-		vars.Add(c.InitialVariable)
+		vars.Add(strings.TrimSpace(strings.ToLower(c.InitialVariable)))
 		for _, next := range c.Relationships {
-			vars.Add(next.Variable)
+			vars.Add(strings.TrimSpace(strings.ToLower(next.Variable)))
 		}
 	}
 	return vars
@@ -187,7 +187,9 @@ func (m *Map) Loops() [][]string {
 			} else {
 				from = chain.Relationships[i-1].Variable
 			}
-			outgoing[from] = append(outgoing[from], r.Variable)
+			from = strings.TrimSpace(strings.ToLower(from))
+			to := strings.TrimSpace(strings.ToLower(r.Variable))
+			outgoing[from] = append(outgoing[from], to)
 		}
 	}
 

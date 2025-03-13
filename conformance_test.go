@@ -167,6 +167,7 @@ var specificConstraints = map[string]conformanceConstraints{
 }
 
 var llmModels = []string{
+	//"gemma3:27b",
 	//"gemma2",
 	//"phi4",
 	"llama3.3:70b-instruct-q4_K_M",
