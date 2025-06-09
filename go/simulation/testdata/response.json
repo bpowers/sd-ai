@@ -1,0 +1,75 @@
+{
+  "explanation": "This model represents the growth of a collection of frimbulators over time. We start with an initial stock of frimbulators and experience a daily growth rate of 2%. This growth rate is applied to the current stock, resulting in an increase in the number of frimbulators each day.",
+  "specs": {
+    "dt": 0.125,
+    "saveStep": 0.125,
+    "startTime": 0,
+    "stopTime": 30,
+    "timeUnits": "days"
+  },
+  "title": "Frimbulator Collection Growth Model",
+  "variables": [
+    {
+      "documentation": "The total number of frimbulators in the collection at any time.",
+      "equation": {
+        "type": "const",
+        "value": 20
+      },
+      "graphicalFunction": null,
+      "inflows": [
+        "frimbulator_increase"
+      ],
+      "name": "frimbulator_stock",
+      "outflows": [],
+      "type": "stock",
+      "units": "frimbulators"
+    },
+    {
+      "documentation": "The daily increase in the number of frimbulators based on the growth rate applied to the current stock of frimbulators.",
+      "equation": {
+        "type": "const",
+        "value": 0.02
+      },
+      "graphicalFunction": null,
+      "inflows": [],
+      "name": "growth_rate",
+      "outflows": [],
+      "type": "variable",
+      "units": "fraction per day"
+    },
+    {
+      "documentation": "The flow representing the increase in frimbulators each day, calculated based on the growth rate and current stock of frimbulators.",
+      "equation": {
+        "type": "const",
+        "value": 0
+      },
+      "graphicalFunction": null,
+      "inflows": [],
+      "name": "frimbulator_increase",
+      "outflows": [],
+      "type": "flow",
+      "units": "frimbulators per day"
+    },
+    {
+      "documentation": "A variable representing the multiplier used to calculate daily increase in frimbulators.",
+      "equation": {
+        "lhs": {
+          "type": "const",
+          "value": 2
+        },
+        "op": "/",
+        "rhs": {
+          "type": "const",
+          "value": 100
+        },
+        "type": "binaryOp"
+      },
+      "graphicalFunction": null,
+      "inflows": [],
+      "name": "daily_multiplier",
+      "outflows": [],
+      "type": "variable",
+      "units": "dimensionless"
+    }
+  ]
+}

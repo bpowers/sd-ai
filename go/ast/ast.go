@@ -1,6 +1,8 @@
 package ast
 
 import (
+	"encoding/json"
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -161,6 +163,98 @@ func (i *If) AppendEquation(b []byte) []byte {
 	return i.Else.AppendEquation(b)
 }
 
+// ExprJSON is a wrapper for JSON unmarshaling of Expr
+type ExprJSON struct {
+	Expr
+}
+
+func (e *ExprJSON) UnmarshalJSON(data []byte) error {
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+
+	exprType, exists := raw["type"]
+	if !exists {
+		return fmt.Errorf("missing 'type' field in expression")
+	}
+
+	var typeStr string
+	if err := json.Unmarshal(exprType, &typeStr); err != nil {
+		return err
+	}
+
+	switch typeStr {
+	case "const":
+		var constExpr struct {
+			Value float64 `json:"value"`
+		}
+		if err := json.Unmarshal(data, &constExpr); err != nil {
+			return err
+		}
+		e.Expr = &Const{Value: constExpr.Value}
+
+	case "var":
+		var varExpr struct {
+			Ident string `json:"ident"`
+		}
+		if err := json.Unmarshal(data, &varExpr); err != nil {
+			return err
+		}
+		e.Expr = &Var{Ident: varExpr.Ident}
+
+	case "binaryOp":
+		var binOpExpr struct {
+			Op  string     `json:"op"`
+			Lhs *ExprJSON  `json:"lhs"`
+			Rhs *ExprJSON  `json:"rhs"`
+		}
+		if err := json.Unmarshal(data, &binOpExpr); err != nil {
+			return err
+		}
+		e.Expr = &BinaryOp{
+			Op:  binOpExpr.Op,
+			Lhs: binOpExpr.Lhs.Expr,
+			Rhs: binOpExpr.Rhs.Expr,
+		}
+
+	case "unaryOp":
+		var unaryOpExpr struct {
+			Op   string    `json:"op"`
+			Expr *ExprJSON `json:"expr"`
+		}
+		if err := json.Unmarshal(data, &unaryOpExpr); err != nil {
+			return err
+		}
+		e.Expr = &UnaryOp{
+			Op:   unaryOpExpr.Op,
+			Expr: unaryOpExpr.Expr.Expr,
+		}
+
+	case "call":
+		var callExpr struct {
+			Fn   string      `json:"fn"`
+			Args []*ExprJSON `json:"args"`
+		}
+		if err := json.Unmarshal(data, &callExpr); err != nil {
+			return err
+		}
+		args := make([]Expr, len(callExpr.Args))
+		for i, arg := range callExpr.Args {
+			args[i] = arg.Expr
+		}
+		e.Expr = &Call{
+			Fn:   callExpr.Fn,
+			Args: args,
+		}
+
+	default:
+		return fmt.Errorf("unknown expression type: %s", typeStr)
+	}
+
+	return nil
+}
+
 var (
 	_ Expr = (*Const)(nil)
 	_ Expr = (*Var)(nil)
@@ -169,6 +263,7 @@ var (
 	_ Expr = (*UnaryOp)(nil)
 	_ Expr = (*BinaryOp)(nil)
 	_ Expr = (*If)(nil)
+	_ json.Unmarshaler = (*ExprJSON)(nil)
 )
 
 // IExpr is an expression that appears inside "[" and "]" for subscripts.

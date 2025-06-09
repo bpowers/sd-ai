@@ -216,6 +216,12 @@ func (c *chatClient) Message(ctx context.Context, msg chat.Message, opts ...chat
 	}
 
 	if bodyBytes, err = c.doHttpRequest(ctx, body); err != nil {
+		if debugDir := chat.DebugDir(ctx); debugDir != "" {
+			outputPath := path.Join(debugDir, "response_error.json")
+			if err = os.WriteFile(outputPath, bodyBytes, 0o644); err != nil {
+				return chat.Message{}, fmt.Errorf("os.WriteFile(%s): %w", outputPath, err)
+			}
+		}
 		return chat.Message{}, fmt.Errorf("c.doHttpRequest: %w", err)
 	}
 

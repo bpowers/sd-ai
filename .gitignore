@@ -46,3 +46,4 @@ build/
 .idea/
 
 /engines/causal-chains/causal-chains
+/engines/stock-and-flow/stock-and-flow

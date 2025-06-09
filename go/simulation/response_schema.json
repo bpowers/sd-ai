@@ -1,0 +1,377 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "title": "Model",
+    "description": "System Dynamics model representation",
+    "properties": {
+        "title": {
+            "type": "string",
+            "description": "Title of the model"
+        },
+        "explanation": {
+            "type": "string",
+            "description": "Explanation of the model"
+        },
+        "variables": {
+            "type": "array",
+            "description": "List of variables in the model",
+            "items": {
+                "$ref": "#/definitions/Variable"
+            }
+        },
+        "specs": {
+            "$ref": "#/definitions/Specs"
+        }
+    },
+    "required": ["title", "explanation", "variables", "specs"],
+    "additionalProperties": false,
+    "definitions": {
+        "Variable": {
+            "type": "object",
+            "description": "A variable in the system dynamics model",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Name of the variable"
+                },
+                "type": {
+                    "$ref": "#/definitions/VariableType"
+                },
+                "equation": {
+                    "$ref": "#/definitions/Expr"
+                },
+                "documentation": {
+                    "type": "string",
+                    "description": "Documentation for the variable"
+                },
+                "units": {
+                    "type": "string",
+                    "description": "Units of measurement"
+                },
+                "inflows": {
+                    "type": "array",
+                    "description": "List of inflow variable names",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "outflows": {
+                    "type": "array",
+                    "description": "List of outflow variable names",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "graphicalFunction": {
+                    "type": ["object", "null"],
+                    "description": "Graphical function (lookup table)",
+                    "properties": {
+                        "points": {
+                            "type": "array",
+                            "description": "List of points defining the graphical function",
+                            "items": {
+                                "type": "object",
+                                "description": "A point in a graphical function",
+                                "properties": {
+                                    "x": {
+                                        "type": "number",
+                                        "description": "X coordinate"
+                                    },
+                                    "y": {
+                                        "type": "number",
+                                        "description": "Y coordinate"
+                                    }
+                                },
+                                "required": ["x", "y"],
+                                "additionalProperties": false
+                            }
+                        }
+                    },
+                    "required": ["points"],
+                    "additionalProperties": false
+                }
+            },
+            "required": ["name", "type", "equation", "documentation", "units", "inflows", "outflows", "graphicalFunction"],
+            "additionalProperties": false
+        },
+        "VariableType": {
+            "type": "string",
+            "description": "Type of variable in the system dynamics model",
+            "enum": ["variable", "stock", "flow"]
+        },
+        "Specs": {
+            "type": "object",
+            "description": "Simulation specifications",
+            "properties": {
+                "startTime": {
+                    "type": "number",
+                    "description": "Simulation start time"
+                },
+                "stopTime": {
+                    "type": "number",
+                    "description": "Simulation stop time"
+                },
+                "dt": {
+                    "type": "number",
+                    "description": "Time step (delta time)"
+                },
+                "saveStep": {
+                    "type": "number",
+                    "description": "Save interval"
+                },
+                "timeUnits": {
+                    "type": "string",
+                    "description": "Units of time (e.g., 'days', 'years')"
+                }
+            },
+            "required": ["startTime", "stopTime", "dt", "saveStep", "timeUnits"],
+            "additionalProperties": false
+        },
+        "Expr": {
+            "anyOf": [
+                {
+                    "$ref": "#/definitions/Const"
+                },
+                {
+                    "$ref": "#/definitions/Var"
+                },
+                {
+                    "$ref": "#/definitions/Call"
+                },
+                {
+                    "$ref": "#/definitions/Subscript"
+                },
+                {
+                    "$ref": "#/definitions/UnaryOp"
+                },
+                {
+                    "$ref": "#/definitions/BinaryOp"
+                },
+                {
+                    "$ref": "#/definitions/If"
+                }
+            ],
+            "description": "Expression node in the abstract syntax tree"
+        },
+        "Const": {
+            "type": "object",
+            "description": "Constant value expression",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "const": "const"
+                },
+                "value": {
+                    "type": "number",
+                    "description": "Numeric value"
+                }
+            },
+            "required": ["type", "value"],
+            "additionalProperties": false
+        },
+        "Var": {
+            "type": "object",
+            "description": "Variable reference expression",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "const": "var"
+                },
+                "ident": {
+                    "type": "string",
+                    "description": "Variable identifier"
+                }
+            },
+            "required": ["type", "ident"],
+            "additionalProperties": false
+        },
+        "Call": {
+            "type": "object",
+            "description": "Function call expression",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "const": "call"
+                },
+                "fn": {
+                    "type": "string",
+                    "description": "Function name"
+                },
+                "args": {
+                    "type": "array",
+                    "description": "Function arguments",
+                    "items": {
+                        "$ref": "#/definitions/Expr"
+                    }
+                }
+            },
+            "required": ["type", "fn", "args"],
+            "additionalProperties": false
+        },
+        "Subscript": {
+            "type": "object",
+            "description": "Subscript expression",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "const": "subscript"
+                },
+                "ident": {
+                    "type": "string",
+                    "description": "Array/table identifier"
+                },
+                "index": {
+                    "type": "array",
+                    "description": "Index expressions",
+                    "items": {
+                        "$ref": "#/definitions/IExpr"
+                    }
+                }
+            },
+            "required": ["type", "ident", "index"],
+            "additionalProperties": false
+        },
+        "UnaryOp": {
+            "type": "object",
+            "description": "Unary operation expression",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "const": "unaryOp"
+                },
+                "op": {
+                    "type": "string",
+                    "description": "Operator",
+                    "enum": ["+", "-"]
+                },
+                "expr": {
+                    "$ref": "#/definitions/Expr"
+                }
+            },
+            "required": ["type", "op", "expr"],
+            "additionalProperties": false
+        },
+        "BinaryOp": {
+            "type": "object",
+            "description": "Binary operation expression",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "const": "binaryOp"
+                },
+                "op": {
+                    "type": "string",
+                    "description": "Operator",
+                    "enum": ["+", "-", "*", "/"]
+                },
+                "lhs": {
+                    "$ref": "#/definitions/Expr"
+                },
+                "rhs": {
+                    "$ref": "#/definitions/Expr"
+                }
+            },
+            "required": ["type", "op", "lhs", "rhs"],
+            "additionalProperties": false
+        },
+        "If": {
+            "type": "object",
+            "description": "Conditional expression",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "const": "if"
+                },
+                "cond": {
+                    "$ref": "#/definitions/Expr"
+                },
+                "then": {
+                    "$ref": "#/definitions/Expr"
+                },
+                "else": {
+                    "$ref": "#/definitions/Expr"
+                }
+            },
+            "required": ["type", "cond", "then", "else"],
+            "additionalProperties": false
+        },
+        "IExpr": {
+            "anyOf": [
+                {
+                    "$ref": "#/definitions/Wildcard"
+                },
+                {
+                    "$ref": "#/definitions/StarRange"
+                },
+                {
+                    "$ref": "#/definitions/Range"
+                },
+                {
+                    "$ref": "#/definitions/IndexExpr"
+                }
+            ],
+            "description": "Index expression for subscripts"
+        },
+        "Wildcard": {
+            "type": "object",
+            "description": "Wildcard index expression",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "const": "wildcard"
+                }
+            },
+            "required": ["type"],
+            "additionalProperties": false
+        },
+        "StarRange": {
+            "type": "object",
+            "description": "Star range index expression",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "const": "starRange"
+                },
+                "ident": {
+                    "type": "string",
+                    "description": "Identifier for the star range"
+                }
+            },
+            "required": ["type", "ident"],
+            "additionalProperties": false
+        },
+        "Range": {
+            "type": "object",
+            "description": "Range index expression",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "const": "range"
+                },
+                "start": {
+                    "$ref": "#/definitions/Expr"
+                },
+                "end": {
+                    "$ref": "#/definitions/Expr"
+                }
+            },
+            "required": ["type", "start", "end"],
+            "additionalProperties": false
+        },
+        "IndexExpr": {
+            "type": "object",
+            "description": "Regular index expression",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "const": "indexExpr"
+                },
+                "expr": {
+                    "$ref": "#/definitions/Expr"
+                }
+            },
+            "required": ["type", "expr"],
+            "additionalProperties": false
+        }
+    }
+}
